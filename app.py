@@ -410,6 +410,9 @@ def restore_device(ip):
     #             "name": "John Smith",
     #             "privilege": 0,
     #             "user_id": "123"
+    #             "password": "password123",
+    #             "group_id": "1",
+    #             "card": "1234567890"
     #         },
     #         "templates": [
     #             {
@@ -431,8 +434,8 @@ def restore_device(ip):
             return {"error": "Each item must have 'user' and 'templates' fields"}, 400
             
         user = item["user"]
-        if not all(field in user for field in ["name", "privilege", "user_id"]):
-            return {"error": "User object must have name, privilege and user_id fields"}, 400
+        if not all(field in user for field in ["name", "privilege", "user_id", "password", "group_id", "card"]):
+            return {"error": "User object must have name, privilege, user_id, password, group_id and card fields"}, 400
             
         templates = item["templates"]
         if not isinstance(templates, list):
@@ -599,8 +602,8 @@ def restore_fingerprints(ip):
             return {"error": str(e)}, 500
 
         # Get request data
-
         data = request.get_json()
+
         results = []
 
         if not isinstance(data, list):
@@ -642,7 +645,6 @@ def restore_fingerprints(ip):
                     print(f"Fingerprint registered for user {user_data['user_id']}")
                     results.append({
                         "user_id": user_data['user_id'],
-                        "name": user_data['name'], 
                         "status": "success",
                         "message": f"Fingerprint registered for user {user_data['user_id']}"
                     })
@@ -650,7 +652,6 @@ def restore_fingerprints(ip):
                     print(f"Failed to register fingerprint for user {user_data['user_id']}: {error_msg}")
                     results.append({
                         "user_id": user_data['user_id'],
-                        "name": user_data['name'],
                         "status": "error", 
                         "message": f"Failed to register fingerprint for user {user_data['user_id']}: {error_msg}"
                     })
@@ -658,9 +659,8 @@ def restore_fingerprints(ip):
         return jsonify(results)
 
     except Exception as e:
-        print(f"Error: {e}")
         traceback.print_exc()
-        return {"error": str(e)}, 500
+        return {"error": traceback.format_exc()}, 500
 
 
 # def stream_logs():
