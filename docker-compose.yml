@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  flask-app:
+    container_name: 'fingerprint-backup-api'
+    image: 'fingerprint-backup-api'
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=development
+    restart: always
