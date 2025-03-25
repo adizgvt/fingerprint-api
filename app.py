@@ -399,7 +399,7 @@ def backup_device(ip):
         return {"error": str(traceback.format_exc())}, 500
 
 
-@app.route("/api/device/<ip>/restore", methods=['POST'])
+@app.route("/api/device/<ip>/restore/user", methods=['POST'])
 def restore_device(ip):
     data = request.json
 
@@ -587,17 +587,93 @@ def restore_device(ip):
         traceback.print_exc() 
         return {"error": str(e)}, 500
 
-def stream_logs():
-    for i in range(20):
-        yield f"Log entry #{i}: Processing data batch {i*10} to {(i+1)*10}\n"
-        yield f"Status: Running verification checks...\n" 
-        #time.sleep(1)
-        yield f"Memory usage: {50 + i*2}MB\n"
-        yield f"Active connections: {3 + (i % 5)}\n"
-        #time.sleep(1)
-        yield f"Completed batch {i} successfully\n"
-        yield "----------------------------------------\n"
-        time.sleep(2)  # Simulate log processing delay
+@app.route("/api/device/<ip>/restore/fingerprints", methods=['POST'])
+def restore_fingerprints(ip):
+    try:
+        # Connect to device
+        try:
+            conn = ZK(ip, port=4370, timeout=5, password=0, force_udp=False, ommit_ping=False)
+            conn.connect()
+            conn.disable_device()
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+        # Get request data
+
+        data = request.get_json()
+        results = []
+
+        if not isinstance(data, list):
+            return {"error": "Data must be a list"}, 400
+
+        for item in data:
+            if not isinstance(item, dict):
+                return {"error": "Each item must be an object"}, 400
+            
+        if "user" not in item or "templates" not in item:
+            return {"error": "Each item must have 'user' and 'templates' fields"}, 400
+            
+        user = item["user"]
+        if not all(field in user for field in ["user_id"]):
+            return {"error": "User object must have user_id fields"}, 400
+            
+        templates = item["templates"]
+        if not isinstance(templates, list):
+            return {"error": "Templates must be a list"}, 400
+            
+        for template in templates:
+            if not all(field in template for field in ["finger_id", "template"]):
+                return {"error": "Each template must have finger_id and template fields"}, 400
+
+        # Process each user's fingerprint templates
+        for datum in data:
+            user_data = datum['user']
+            
+            # Register fingerprints for user
+            for template in datum['templates']:
+                status, error_msg = register_fingerprint(
+                    user_data['user_id'],
+                    template['finger_id'],
+                    base64.b64decode(template['template']).hex(),
+                    conn
+                )
+                
+                if status:
+                    print(f"Fingerprint registered for user {user_data['user_id']}")
+                    results.append({
+                        "user_id": user_data['user_id'],
+                        "name": user_data['name'], 
+                        "status": "success",
+                        "message": f"Fingerprint registered for user {user_data['user_id']}"
+                    })
+                else:
+                    print(f"Failed to register fingerprint for user {user_data['user_id']}: {error_msg}")
+                    results.append({
+                        "user_id": user_data['user_id'],
+                        "name": user_data['name'],
+                        "status": "error", 
+                        "message": f"Failed to register fingerprint for user {user_data['user_id']}: {error_msg}"
+                    })
+
+        return jsonify(results)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        traceback.print_exc()
+        return {"error": str(e)}, 500
+
+
+# def stream_logs():
+#     for i in range(20):
+#         yield f"Log entry #{i}: Processing data batch {i*10} to {(i+1)*10}\n"
+#         yield f"Status: Running verification checks...\n" 
+#         #time.sleep(1)
+#         yield f"Memory usage: {50 + i*2}MB\n"
+#         yield f"Active connections: {3 + (i % 5)}\n"
+#         #time.sleep(1)
+#         yield f"Completed batch {i} successfully\n"
+#         yield "----------------------------------------\n"
+#         time.sleep(2)  # Simulate log processing delay
 
 @app.route('/api/test')
 def logs():
