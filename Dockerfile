@@ -7,6 +7,9 @@ WORKDIR /app
 # Install Flask directly
 RUN pip install flask
 
+RUN apt-get update
+RUN apt install iputils-ping
+
 # Copy the entire project
 COPY . .
 
