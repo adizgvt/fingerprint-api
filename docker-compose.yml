@@ -5,7 +5,7 @@ services:
     container_name: 'fingerprint-backup-api'
     image: 'fingerprint-backup-api'
     build: .
-    network_mode: 'host'
+    #network_mode: 'host'
     ports:
       - "5001:5001"
     environment:
