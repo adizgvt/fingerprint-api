@@ -8,7 +8,7 @@ WORKDIR /app
 RUN pip install flask
 
 RUN apt-get update
-RUN apt install iputils-ping
+RUN apt install -y iputils-ping
 
 # Copy the entire project
 COPY . .
