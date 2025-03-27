@@ -1,4 +1,6 @@
 from flask import Flask, request, Response, jsonify
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+
 import sys
 import os
 import json
@@ -6,15 +8,23 @@ import re
 import traceback
 import base64
 import time
-
+import hashlib
 sys.path.insert(1,os.path.abspath("./pyzk"))
 from zk import ZK, const
 from zk.finger import Finger
 
 
-app = Flask(__name__)
+app                             = Flask(__name__)
+#-------------------------------------------------------------------------------------
+app.config["JWT_SECRET_KEY"]    = "your_secret_key"  # Change this to a secure key
+app.config["DEBUG"]             = True  # Enable debug mode
 
-app.config["DEBUG"] = True  # Enable debug mode
+jwt                             = JWTManager(app)
+#-------------------------------------------------------------------------------------
+
+# Fake user database
+users = {"admin": "161ebd7d45089b3446ee4e0d86dbcf92"}
+
 
 
 def register_fingerprint(user_id, fid, template, conn):
@@ -56,12 +66,25 @@ def delete_user(user_id, conn):
     except Exception as e:
         return False, str(traceback.format_exc())
 
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    if username in users and hashlib.md5(password.encode()).hexdigest() == users[username]:
+        access_token = create_access_token(identity=username)
+        return jsonify(access_token=access_token)
+
+    return jsonify({"msg": "Invalid credentials"}), 401
+
 
 @app.route("/")
 def home():
     return "Hello, Flask!"
 
 @app.route("/api/devices")
+@jwt_required()
 def get_devices():
     #todo: get devices from database
     return [
@@ -76,6 +99,7 @@ def get_devices():
     ]
 
 @app.route("/api/device/<ip>/users")
+@jwt_required()
 def get_device_users(ip):
     try:
         try:
@@ -344,6 +368,7 @@ def get_device_users(ip):
 
 
 @app.route("/api/device/<ip>/backup", methods=['GET'])
+@jwt_required()
 def backup_device(ip):
 
     # data = 'Sq9TUzIxAAAD7PAECAUHCc7QAAAb7WkBAAAAgxEhXewwAHQPdgCJAADj1QBRABUPrQBW7HAPrQBrAMsO0+x7AJUOuQBTACDjzACbACEPuACd7GsPoQCyAPEPf+yyAEEP2gBwADXjYgC7ADIPcwC87EAPUgDEAPEPnuzLAE8PdAAKAMPjrQDQALUPgQDZ7C4PMADkAPcPiezlANgP7QAsAEfjmQDxAHEPSQAD7X4OfwAHAU0Oo+wGAWQPbwDPAQPjTQAaARsPhQA27R4OOwA/AdUNnexFAXgPVACMAZXhzgBYAeYP93FB6SZr5ZQikVL3sW7WCL/3+XAD/RyLh3qq71/493RJmX+KaQU6kXvx6u2M7yaMWSmzOi3WlOZl9n6AxNm2/4yD+RfC9S8Xvu1A83F3lY0QDrIbOAWlB1p1hJz68iATZZONgyfoXoSgdX6Awf7s/zETPAYzAH8bDGnmt0sY7xLbBwqTrnVs9UEObfgYERLx5AhxiPokbOXOGp/ceXh2gDfmuRBXHroOtBNEizXoRfOBf0L23pXI+7bzeYuNe2J8KJ1Gh0NrrITuMgPMMwECPR7GwgCB7QLB/cE5BMVrBptOBwB5DvrwfQbscA99eA0AFx+FLvxpc8FtA8XYJ+X8EAAyLvD9VUAsN/4EAFkysncM7Cs76f7//jpkRxJLDAB6TAabwEWJDwDQTpDAssCHiMMDANhPDDkRA8VR6Tf/NkP3SQTsZVN0dMT/yQBvuPxARP9DA8XXVvv+CQBkWW0FwIhoDgC5aYn/BHzHi2bBAwCwbNbAF+z1dJrAwXK7kPwtgYMEANR831ki7MiXlsH+k0eAwy2TwIjAdXcHjhvsvZgg//79OsD+E1Y9Mf3+MTsKAz2bF/0zwf6BCwOVnHHEw8PFBJLG6wHOnyLA/TowAOwQrkz/BgBFsBUV+v3zIwEDc6TDmcFlicHDwUHAh5LCacGEwQPFfbTd/BYA27k0Bf3800r/M//9wDj/VMwB97mtwouud8AtwcT/wsHBBMHCZYXBfQkAYgYwjijGxsQGALcBQPzdCQCcxrrDAMfHKsYGAFLJNwfCkvgBr83AxJsGwccvwsLCwsPDBMPDKQkArNRMOzv9+e8ADtot/ArFRNzcw8DEwMDFaSQDw+HA/8D8Ozr+/RIyKf/9O/76wfwQ/Pz+/zUDxQfgrMATAC3oOgZrwC7Bwo7DwpAFLwPY6TB1i8KoTmyLL8COkZbDwgfAwS/AwsLBwMMAxMH2AertRv9EOv3D3MH9MMD//jo+QOcB8e09MU/wBRMGNlxABBDy+GBP7xH/RHDDA9XbWZzBUkIAC0PEAAPnRFI='
@@ -400,6 +425,7 @@ def backup_device(ip):
 
 
 @app.route("/api/device/<ip>/restore/user", methods=['POST'])
+@jwt_required()
 def restore_device(ip):
     data = request.json
 
@@ -674,10 +700,6 @@ def restore_fingerprints(ip):
 #         yield f"Completed batch {i} successfully\n"
 #         yield "----------------------------------------\n"
 #         time.sleep(2)  # Simulate log processing delay
-
-@app.route('/api/test')
-def logs():
-    return 'Server is running'
 
 
 
