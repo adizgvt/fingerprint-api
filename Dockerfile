@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Install Flask directly
 RUN pip install flask
+RUN pip install flask-jwt-extended
 
 RUN apt-get update
 RUN apt install -y iputils-ping
