@@ -384,6 +384,8 @@ def backup_device(ip):
         except Exception as e:
             return {"error": str(traceback.format_exc())}, 500
 
+        return jsonify({"message": "Device disabled"});
+
         users = conn.get_users()
         temps = conn.get_templates()
 
