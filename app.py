@@ -103,7 +103,7 @@ def get_devices():
 def get_device_users(ip):
     try:
         try:
-            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=False, ommit_ping=False)
+            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=True, ommit_ping=False)
             conn.connect()
             conn.disable_device()
         except Exception as e:
@@ -168,7 +168,7 @@ def get_device_users(ip):
 
 #     try:
 #         try:
-#             zkSource = ZK(source_ip, port=4370, timeout=5, password=0, force_udp=False, ommit_ping=False)
+#             zkSource = ZK(source_ip, port=4370, timeout=5, password=0, force_udp=True, ommit_ping=False)
 #             sourceConn = zkSource.connect()
 #         except Exception as e:
 #             return {"error": f"Failed to connect to source device: {str(e)}"}, 500
@@ -228,7 +228,7 @@ def get_device_users(ip):
 #         #--------------------------------
 
 #         try:
-#             zkTarget = ZK(target_ip, port=4370, timeout=5, password=0, force_udp=False, ommit_ping=False)
+#             zkTarget = ZK(target_ip, port=4370, timeout=5, password=0, force_udp=True, ommit_ping=False)
 #             targetConn = zkTarget.connect()
 #         except Exception as e:
 #             return {"error": f"Failed to connect to target device: {str(e)}"}, 500
@@ -378,7 +378,7 @@ def backup_device(ip):
 
     try:
         try:
-            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=False, ommit_ping=False)
+            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=True, ommit_ping=False)
             conn.connect()
             conn.disable_device()
         except Exception as e:
@@ -431,7 +431,7 @@ def backup_fingerprint(ip, uid):
 
     try:
         try:
-            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=False, ommit_ping=False, verbose=True)
+            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=True, ommit_ping=False, verbose=True)
             conn.connect()
             conn.disable_device()
         except Exception as e:
@@ -509,7 +509,7 @@ def restore_device(ip):
 
     try:
         try:
-            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=False, ommit_ping=False)
+            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=True, ommit_ping=False)
             conn.connect()
         except Exception as e:
             return {"error": str(traceback.format_exc())}, 500
@@ -658,7 +658,7 @@ def restore_fingerprints(ip):
     try:
         # Connect to device
         try:
-            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=False, ommit_ping=False)
+            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=True, ommit_ping=False)
             conn.connect()
             conn.disable_device()
         except Exception as e:
