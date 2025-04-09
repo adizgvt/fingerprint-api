@@ -426,7 +426,7 @@ def backup_device(ip):
         return {"error": str(traceback.format_exc())}, 500
 
 @app.route("/api/device/<ip>/backup/fingerprint/<uid>", methods=['GET'])
-@@jwt_required()
+@jwt_required()
 def backup_fingerprint(ip, uid):
 
     try:
