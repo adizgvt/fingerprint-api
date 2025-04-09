@@ -425,6 +425,40 @@ def backup_device(ip):
         print(f"Error: {traceback.format_exc()}")
         return {"error": str(traceback.format_exc())}, 500
 
+@app.route("/api/device/<ip>/backup/fingerprint/<uid>", methods=['GET'])
+@@jwt_required()
+def backup_fingerprint(ip, uid):
+
+    try:
+        try:
+            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=False, ommit_ping=False, verbose=True)
+            conn.connect()
+            conn.disable_device()
+        except Exception as e:
+            return {"error": str(traceback.format_exc())}, 500
+
+        temps = []
+        for temp_id in range(10):
+            temp = conn.get_user_template(uid=11, temp_id=temp_id)
+            if temp:
+                temps.append(temp)
+
+        fingerprints = []
+        for temp in temps:
+            fingerprints.append({
+                "finger_id": int(temp.fid),
+                "template": base64.b64encode(temp.template).decode('utf-8')
+            })
+        
+
+        conn.enable_device()
+        conn.disconnect()
+
+        return jsonify(fingerprints)
+
+    except Exception as e:
+        print(f"Error: {traceback.format_exc()}")
+
 
 @app.route("/api/device/<ip>/restore/user", methods=['POST'])
 @jwt_required()
