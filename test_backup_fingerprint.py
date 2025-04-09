@@ -15,11 +15,12 @@ def backup_device(ip, uid):
             conn.connect()
             conn.disable_device()
         except Exception as e:
+            print(traceback.format_exc())
             return {"error": str(traceback.format_exc())}, 500
 
         temps = []
         for temp_id in range(10):
-            temp = conn.get_user_template(uid=81, temp_id=temp_id)
+            temp = conn.get_user_template(uid=11, temp_id=temp_id)
             if temp:
                 temps.append(temp)
 

@@ -1076,12 +1076,12 @@ class ZK(object):
         :param user_id: your own user ID
         :return: list Finger object of the selected user
         """
-        if not uid:
-            users = self.get_users()
-            users = list(filter(lambda x: x.user_id==str(user_id), users))
-            if not users:
-                return False
-            uid = users[0].uid
+        # if not uid:
+        #     users = self.get_users()
+        #     users = list(filter(lambda x: x.user_id==str(user_id), users))
+        #     if not users:
+        #         return False
+        #     uid = users[0].uid
         for _retries in range(3):
             command = const._CMD_GET_USERTEMP # command secret!!! GET_USER_TEMPLATE
             command_string = pack('hb', uid, temp_id)
