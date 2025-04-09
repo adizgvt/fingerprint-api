@@ -11,7 +11,7 @@ def backup_device(ip, uid):
 
     try:
         try:
-            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=False, ommit_ping=False, verbose=True)
+            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=true, ommit_ping=False, verbose=True)
             conn.connect()
             conn.disable_device()
         except Exception as e:
