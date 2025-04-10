@@ -401,20 +401,20 @@ def backup_device(ip):
         users_templates = []
         for user in users:
             user_template = {
-                "user": {
+                user.user_id: {
                     "user_id": user.user_id,
                     "name": user.name,
                     "privilege": user.privilege,
                     "password": user.password,
                     "group_id": user.group_id,
-                    "card": user.card
+                    "card": user.card,
+                    "templates": templates_by_user.get(user.uid, [])
                 },
-                "templates": templates_by_user.get(user.uid, [])
             }
             
             users_templates.append(user_template)
 
-        users_templates.sort(key=lambda x: x['user']['user_id'])
+        # users_templates.sort(key=lambda x: x['user']['user_id'])
 
         conn.enable_device()
         conn.disconnect()
@@ -439,7 +439,7 @@ def backup_fingerprint(ip, uid):
 
         temps = []
         for temp_id in range(10):
-            temp = conn.get_user_template(uid=11, temp_id=temp_id)
+            temp = conn.get_user_template(uid=int(uid), temp_id=temp_id)
             if temp:
                 temps.append(temp)
 
@@ -457,7 +457,8 @@ def backup_fingerprint(ip, uid):
         return jsonify(fingerprints)
 
     except Exception as e:
-        print(f"Error: {traceback.format_exc()}")
+        return {"error": traceback.format_exc()}, 500
+        # print(f"Error: {traceback.format_exc()}")
 
 
 @app.route("/api/device/<ip>/restore/user", methods=['POST'])
