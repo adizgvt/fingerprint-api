@@ -402,6 +402,7 @@ def backup_device(ip):
         for user in users:
             user_template = {
                 user.user_id: {
+                    "uid": user.uid,
                     "user_id": user.user_id,
                     "name": user.name,
                     "privilege": user.privilege,
