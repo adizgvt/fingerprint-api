@@ -727,6 +727,79 @@ def restore_fingerprints(ip):
         traceback.print_exc()
         return {"error": traceback.format_exc()}, 500
 
+@app.route("/api/device/<ip>/attendance/all", methods=['GET'])
+def get_all_attendance(ip):
+    try:
+        return _get_attendance(ip)
+    except Exception as e:
+        print(str(traceback.format_exc()))
+        return []
+
+@app.route("/api/device/<ip>/attendance/user/<user_id>", methods=['GET'])
+def get_attendance_by_user(ip, user_id):
+    try:
+        return _get_attendance(ip, user_id=user_id)
+    except Exception as e:
+        print(str(traceback.format_exc()))
+        return []
+
+@app.route("/api/device/<ip>/attendance/date/<start_date>/<end_date>", methods=['GET'])
+def get_attendance_by_date(ip, start_date, end_date):
+    try:
+        return _get_attendance(ip, start_date=start_date, end_date=end_date)
+    except Exception as e:
+        print(str(traceback.format_exc()))
+        return []
+
+
+
+def _get_attendance(ip, user_id=None, start_date=None, end_date=None):
+    try:
+        try:
+            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=False, ommit_ping=False)
+            conn.connect()
+            conn.disable_device()
+        except Exception as e:
+            print(str(traceback.format_exc()))
+            
+        inicio = time.time()
+        attendance = conn.get_attendance()
+        final = time.time()
+        
+        attendance_list = []
+        for att in attendance:
+            # Convert timestamp string to datetime for comparison
+            att_timestamp = att.timestamp
+            
+            print(att_timestamp)
+            # Apply filters
+            if user_id and str(att.user_id) != str(user_id):
+                continue
+                
+            if  att_timestamp < start_date:
+                print(att_timestamp, 'less than', start_date)
+                continue
+                
+            if att_timestamp > end_date:
+                print(att_timestamp, 'greater than', end_date)
+                continue
+                
+            attendance_list.append({
+                "uid": att.uid,
+                "user_id": att.user_id,
+                "timestamp": str(att_timestamp),
+                "status": att.status,
+                "punch": att.punch
+            })
+            
+        conn.enable_device()
+        conn.disconnect()
+
+        return attendance_list
+        
+    except Exception as e:
+        print(str(traceback.format_exc()))
+
 
 # def stream_logs():
 #     for i in range(20):
