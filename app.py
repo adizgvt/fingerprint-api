@@ -741,6 +741,8 @@ def get_all_attendance(ip):
 @app.route("/api/device/<ip>/attendance/user/<user_id>", methods=['GET'])
 def get_attendance_by_user(ip, user_id):
     try:
+        if not user_id:
+            return {"error": "User ID is required"}, 400
         return _get_attendance(ip, user_id=user_id)
     except Exception as e:
         return {"error": traceback.format_exc()}, 500
@@ -748,6 +750,8 @@ def get_attendance_by_user(ip, user_id):
 @app.route("/api/device/<ip>/attendance/date/<start_date>/<end_date>", methods=['GET'])
 def get_attendance_by_date(ip, start_date, end_date):
     try:
+        if not start_date or not end_date:
+            return {"error": "Both start_date and end_date are required"}, 400
         return _get_attendance(ip, start_date=start_date, end_date=end_date)
     except Exception as e:
         return {"error": traceback.format_exc()}, 500
@@ -777,11 +781,12 @@ def _get_attendance(ip, user_id=None, start_date=None, end_date=None):
             if user_id and str(att.user_id) != str(user_id):
                 continue
                 
-            if  att_timestamp < start_date:
+            
+            if start_date and att_timestamp < start_date:
                 print(att_timestamp, 'less than', start_date)
                 continue
                 
-            if att_timestamp > end_date:
+            if end_date and att_timestamp > end_date:
                 print(att_timestamp, 'greater than', end_date)
                 continue
                 
