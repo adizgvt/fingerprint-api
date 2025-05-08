@@ -799,7 +799,7 @@ def _get_attendance(ip, user_id=None, start_date=None, end_date=None):
         return attendance_list
         
     except Exception as e:
-        print(str(traceback.format_exc()))
+        return {"error": str(traceback.format_exc())}, 500
 
 
 # def stream_logs():
