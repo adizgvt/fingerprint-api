@@ -1,6 +1,8 @@
 from flask import Flask, request, Response, jsonify
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
+from datetime import timedelta
+
 import sys
 import os
 import json
@@ -8,6 +10,7 @@ import re
 import traceback
 import base64
 import time
+
 import hashlib
 sys.path.insert(1,os.path.abspath("./pyzk"))
 from zk import ZK, const
@@ -17,6 +20,7 @@ from zk.finger import Finger
 app                             = Flask(__name__)
 #-------------------------------------------------------------------------------------
 app.config["JWT_SECRET_KEY"]    = "your_secret_key"  # Change this to a secure key
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)  # Token expires after 1 hour
 app.config["DEBUG"]             = True  # Enable debug mode
 
 jwt                             = JWTManager(app)
@@ -732,24 +736,21 @@ def get_all_attendance(ip):
     try:
         return _get_attendance(ip)
     except Exception as e:
-        print(str(traceback.format_exc()))
-        return []
+        return {"error": traceback.format_exc()}, 500
 
 @app.route("/api/device/<ip>/attendance/user/<user_id>", methods=['GET'])
 def get_attendance_by_user(ip, user_id):
     try:
         return _get_attendance(ip, user_id=user_id)
     except Exception as e:
-        print(str(traceback.format_exc()))
-        return []
+        return {"error": traceback.format_exc()}, 500
 
 @app.route("/api/device/<ip>/attendance/date/<start_date>/<end_date>", methods=['GET'])
 def get_attendance_by_date(ip, start_date, end_date):
     try:
         return _get_attendance(ip, start_date=start_date, end_date=end_date)
     except Exception as e:
-        print(str(traceback.format_exc()))
-        return []
+        return {"error": traceback.format_exc()}, 500
 
 
 
