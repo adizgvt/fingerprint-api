@@ -761,7 +761,7 @@ def get_attendance_by_date(ip, start_date, end_date):
 def _get_attendance(ip, user_id=None, start_date=None, end_date=None):
     try:
         try:
-            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=False, ommit_ping=False)
+            conn = ZK(ip, port=4370, timeout=120, password=0, force_udp=True, ommit_ping=False)
             conn.connect()
             conn.disable_device()
         except Exception as e:
